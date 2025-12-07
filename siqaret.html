@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Siqaretsiz Həyat</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #757575;
+            --accent-green: #00ff88;
+            --accent-red: #d32f2f;
+            --accent-gold: #ffd700;
+            --btn-shadow: #8c1b1b;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            padding-bottom: 60px;
+        }
+
+        /* TIMER AREA */
+        .timer-card {
+            background: linear-gradient(145deg, #1e1e1e, #252525);
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            margin-bottom: 40px;
+            border: 1px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
+            opacity: 0.8;
+        }
+
+        .timer-display {
+            font-size: 2.2rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            margin: 15px 0;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+
+        .timer-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-green);
+        }
+
+        /* THE BIG RED BUTTON */
+        .button-zone {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .danger-circle {
+            width: 140px;
+            height: 140px;
+            background: #2a2a2a;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 15px #000;
+            border: 2px solid #333;
+        }
+
+        .nuke-btn {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, #ff5252, #b71c1c);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 
+                0 8px 0 var(--btn-shadow),
+                0 15px 20px rgba(0,0,0,0.4),
+                inset 0 2px 5px rgba(255,255,255,0.2);
+            transition: all 0.1s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .nuke-btn:active {
+            box-shadow: 
+                0 2px 0 var(--btn-shadow),
+                0 5px 10px rgba(0,0,0,0.4),
+                inset 0 5px 10px rgba(0,0,0,0.3);
+            transform: translateY(6px);
+        }
+
+        .warning-text {
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: #444;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* MILESTONES */
+        .milestones-header {
+            text-align: left;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .milestones-header h2 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-green);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .milestone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .milestone-card {
+            background: #181818;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: left;
+            border: 1px solid #2a2a2a;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+
+        /* Unlocked State */
+        .milestone-card.unlocked {
+            opacity: 1;
+            filter: grayscale(0);
+            background: #1e1e1e;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.05);
+            transform: scale(1.01);
+        }
+
+        .milestone-card.unlocked .m-time {
+            color: var(--accent-green);
+        }
+
+        .check-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.4s ease;
+            color: var(--accent-green);
+            font-weight: bold;
+        }
+
+        .milestone-card.unlocked .check-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .m-time {
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .m-desc {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #ccc;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .m-quote {
+            font-size: 0.85rem;
+            color: #a0a0a0;
+            font-style: italic;
+            border-left: 2px solid var(--accent-gold);
+            padding-left: 10px;
+            margin-top: 8px;
+            display: block;
+            opacity: 0.8;
+        }
+        
+        .milestone-card.unlocked .m-quote {
+             color: #ddd;
+             opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="timer-card">
+            <div class="timer-label">Təmiz müddət</div>
+            <div class="timer-display" id="timer">00:00:00:00</div>
+            <div style="font-size: 0.8rem; color: #666;" id="startDateDisplay">-</div>
+        </div>
+
+        <div class="button-zone">
+            <div style="display:flex; flex-direction:column; align-items:center;">
+                <div class="danger-circle">
+                    <button class="nuke-btn" onclick="resetTimer()"></button>
+                </div>
+                <div class="warning-text">SIFIRLAMA DÜYMƏSİ</div>
+            </div>
+        </div>
+
+        <div class="milestones-header">
+            <h2>Yol Xəritəsi</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="totalProgress"></div>
+            </div>
+        </div>
+
+        <div class="milestone-list" id="milestonesContainer">
+            </div>
+    </div>
+
+    <script>
+        // İLK 3 GÜN ÜÇÜN XÜSUSİ SIXLAŞDIRILMIŞ PLAN
+        const milestonesData = [
+            { 
+                time: 20 * 60, 
+                title: "20 Dəqiqə", 
+                desc: "Nəbz normallaşır, qan təzyiqi düşür.", 
+                quote: "Zəncir qırıldı. Artıq idarə edən siqaret deyil, sənsən." 
+            },
+            { 
+                time: 3600, 
+                title: "1 Saat", 
+                desc: "Siqaretin verdiyi yalançı 'rahatlıq' hissi yox olur, bədən təmizlənməyə başlayır.", 
+                quote: "Bu günün ilk qələbəsi. Bir saat dözdünsə, bir gün də dözərsən." 
+            },
+            { 
+                time: 2 * 3600, 
+                title: "2 Saat", 
+                desc: "Nikotin aclığı özünü göstərir. Təşviş hissi yarana bilər.", 
+                quote: "Bu hiss əzab deyil, bu, asılılığın can verməsidir." 
+            },
+            { 
+                time: 4 * 3600, 
+                title: "4 Saat", 
+                desc: "Qanda nikotinin səviyyəsi kəskin azalır.", 
+                quote: "Beynin sənə 'siqaret ver' deyə yalvaracaq. Ona 'yox' deməkdən həzz al." 
+            },
+            { 
+                time: 6 * 3600, 
+                title: "6 Saat", 
+                desc: "Ürək ritmi tamamilə stabilləşir.", 
+                quote: "Bədənin sənə təşəkkür etməyə hazırlaşır. Səbr et." 
+            },
+            { 
+                time: 8 * 3600, 
+                title: "8 Saat", 
+                desc: "Qanda oksigen səviyyəsi artır, dəm qazı azalır.", 
+                quote: "Özünü zəhərləməyi dayandırdın. Artıq sadəcə hava udmursan, nəfəs alırsan." 
+            },
+            { 
+                time: 12 * 3600, 
+                title: "12 Saat", 
+                desc: "Bədəndəki dəm qazı (zəhər) tamamilə təmizləndi.", 
+                quote: "Ciyərlərinə azadlıq verdin. Bu gecə yuxun daha təmiz olacaq." 
+            },
+            { 
+                time: 16 * 3600, 
+                title: "16 Saat", 
+                desc: "Halsızlıq və diqqət dağınıqlığı normaldır. Beyin nikotinsiz işləməyi öyrənir.", 
+                quote: "Dumanlıq müvəqqətidir, aydınlıq əbədi olacaq." 
+            },
+            { 
+                time: 24 * 3600, 
+                title: "24 Saat (1 GÜN!)", 
+                desc: "Ürək tutması riski azalmağa başlayır. Kritik hədd keçildi.", 
+                quote: "Bir tam gün. Sən sübut etdin ki, buna möhtac deyilsən. Qürur duy." 
+            },
+            { 
+                time: 36 * 3600, 
+                title: "36 Saat", 
+                desc: "Ağciyər ucları yenidən böyüməyə başlayır. Öskürək ola bilər - bu təmizlənmədir.", 
+                quote: "Çirklər çıxır. Bədənin böyük təmizliyə başlayıb." 
+            },
+            { 
+                time: 48 * 3600, 
+                title: "48 Saat (2 GÜN)", 
+                desc: "Dad və iy bilmə kəskinləşir. Sinir ucları canlanır.", 
+                quote: "Dünyanın dadı dəyişir. Yeməklər, hava, həyat – hər şeyin əsl dadı var." 
+            },
+            { 
+                time: 60 * 3600, 
+                title: "60 Saat", 
+                desc: "Fiziki asılılığın ən son, ən aqressiv dalğaları gələ bilər.", 
+                quote: "Döz. Bu, can verən canavarın son pəncələridir. Bitir." 
+            },
+            { 
+                time: 72 * 3600, 
+                title: "3 GÜN (BÖYÜK QƏLƏBƏ)", 
+                desc: "Bədəndə nikotin qalmadı. Fiziki 'lomka' bitdi. Bronxlar genişlənir.", 
+                quote: "Kimyəvi əsarət bitdi. Zəncirlər qırıldı. Artıq sadəcə psixoloji vərdiş qalıb." 
+            },
+            { 
+                time: 5 * 24 * 3600, 
+                title: "5 Gün", 
+                desc: "Enerji səviyyəsi artır. Səhərlər oyanmaq asanlaşır.", 
+                quote: "Geriyə baxma. Sən artıq o adam deyilsən." 
+            },
+            { 
+                time: 7 * 24 * 3600, 
+                title: "1 Həftə", 
+                desc: "Yuxu rejimi stabilləşir. Təbii dopamin ifrazı bərpa olunur.", 
+                quote: "Bir həftə əvvəlki sənə bax və gülümsə. Bacardın." 
+            },
+            { 
+                time: 14 * 24 * 3600, 
+                title: "2 Həftə", 
+                desc: "Qan dövranı və diş ətləri sağalır. Yürümək asanlaşır.", 
+                quote: "Azadlıq budur. Nəfəs darlığı yox, güc var." 
+            },
+            { 
+                time: 21 * 24 * 3600, 
+                title: "3 Həftə", 
+                desc: "Beyin reseptorları nikotinsiz həyata tam uyğunlaşır. Psixoloji asılılıq azalır.", 
+                quote: "Vərdiş dəyişdi. Artıq siqaret 'ehtiyac' yox, keçmişdə qalmış bir 'səhv'dir." 
+            },
+            { 
+                time: 30 * 24 * 3600, 
+                title: "1 Ay", 
+                desc: "Ağciyər funksiyası 30% artır. İmmunitet güclənir.", 
+                quote: "Təqvimin bir səhifəsi dəyişdi. Cibin dolu, ciyərin təmiz, vicdanın rahat." 
+            },
+            { 
+                time: 3 * 30 * 24 * 3600, 
+                title: "3 Ay", 
+                desc: "Qan dövranı tam normallaşır. Ürək daha sakit işləyir.", 
+                quote: "Artıq geriyə yol yoxdur. Sən qalibsən." 
+            },
+            { 
+                time: 6 * 30 * 24 * 3600, 
+                title: "6 Ay", 
+                desc: "Stressli anlarda siqaret axtarmamaq vərdişi bərkiyir.", 
+                quote: "Əsl güc, çətin anlarda köhnə zəhərə qaçmamaqdır." 
+            },
+            { 
+                time: 365 * 24 * 3600, 
+                title: "1 İl", 
+                desc: "İnfarkt riski siqaret çəkənlərə nisbətən 50% azalır.", 
+                quote: "Həyatını geri qazandın. Sözün əsl mənasında." 
+            },
+             { 
+                time: 5 * 365 * 24 * 3600, 
+                title: "5 İl", 
+                desc: "Xərçəng riski kəskin azalır.", 
+                quote: "Statistika yox, yaşanacaq illər qazandın." 
+            }
+        ];
+
+        let startDate;
+
+        function init() {
+            try {
+                // Versiya 5 - yeni data strukturu üçün açar yeniləndi
+                const storedDate = localStorage.getItem('quitDate_v5'); 
+                if (storedDate) {
+                    startDate = new Date(storedDate);
+                } else {
+                    startDate = new Date();
+                    localStorage.setItem('quitDate_v5', startDate);
+                }
+                
+                updateDisplay();
+                renderMilestones();
+                
+                setInterval(() => {
+                    updateTimer();
+                    updateMilestonesStatus();
+                }, 1000);
+            } catch (e) {
+                console.error("Xəta: ", e);
+            }
+        }
+
+        function resetTimer() {
+            if (navigator.vibrate) navigator.vibrate(200);
+
+            if(confirm("Həqiqətən sıfırlayırsan? Bütün bu yolu yenidən getməli olacaqsan.")) {
+                startDate = new Date();
+                localStorage.setItem('quitDate_v5', startDate);
+                updateDisplay();
+                updateMilestonesStatus();
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+        }
+
+        function updateDisplay() {
+            const options = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            if(startDate) {
+                document.getElementById('startDateDisplay').innerText = `Başlanğıc: ${startDate.toLocaleDateString('az-AZ', options)}`;
+            }
+        }
+
+        function updateTimer() {
+            if(!startDate) return;
+            
+            const now = new Date();
+            let diff = Math.floor((now - startDate) / 1000);
+
+            if (diff < 0) diff = 0;
+
+            const days = Math.floor(diff / (3600 * 24));
+            diff -= days * 3600 * 24;
+            const hours = Math.floor(diff / 3600);
+            diff -= hours * 3600;
+            const minutes = Math.floor(diff / 60);
+            const seconds = diff % 60;
+
+            const f = (n) => n.toString().padStart(2, '0');
+            
+            document.getElementById('timer').innerText = 
+                `${f(days)}:${f(hours)}:${f(minutes)}:${f(seconds)}`;
+        }
+
+        function renderMilestones() {
+            const container = document.getElementById('milestonesContainer');
+            if(!container) return;
+            
+            container.innerHTML = '';
+
+            milestonesData.forEach((m, index) => {
+                const div = document.createElement('div');
+                div.className = 'milestone-card';
+                div.id = `ms-${index}`;
+                div.innerHTML = `
+                    <div class="check-icon">✓</div>
+                    <span class="m-time">${m.title}</span>
+                    <span class="m-desc">${m.desc}</span>
+                    <span class="m-quote">${m.quote}</span>
+                `;
+                container.appendChild(div);
+            });
+            updateMilestonesStatus();
+        }
+
+        function updateMilestonesStatus() {
+            if(!startDate) return;
+            
+            const now = new Date();
+            const diffSeconds = Math.floor((now - startDate) / 1000);
+            let unlockedCount = 0;
+
+            milestonesData.forEach((m, index) => {
+                const card = document.getElementById(`ms-${index}`);
+                if (diffSeconds >= m.time) {
+                    card.classList.add('unlocked');
+                    unlockedCount++;
+                } else {
+                    card.classList.remove('unlocked');
+                }
+            });
+
+            const percent = (unlockedCount / milestonesData.length) * 100;
+            const progressBar = document.getElementById('totalProgress');
+            if(progressBar) {
+                progressBar.style.width = `${percent}%`;
+            }
+        }
+
+        init();
+    </script>
+    <div style="
+            margin-top: 50px; 
+            font-size: 0.75rem; 
+            color: rgba(255, 255, 255, 0.3); 
+            text-align: center; 
+            letter-spacing: 1px;
+            font-family: monospace;">
+            &copy; Made by: Nemat Alibabayev
+        </div>
+
+    </div> 
+</body>
+</html>
